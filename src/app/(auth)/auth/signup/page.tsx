@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import React, { FC } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-// import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 interface SignUpPageProps {}
 
@@ -25,26 +25,26 @@ const SignUpPage: FC<SignUpPageProps> = ({}) => {
 		resolver: zodResolver(signUpFormSchema),
 	});
 
-	// const router = useRouter();
-	// const { toast } = useToast();
+	const router = useRouter();
+	const { toast } = useToast();
 
 	const onSubmit = async (val: z.infer<typeof signUpFormSchema>) => {
-		// try {
-		// 	await fetch("/api/company/new-user", {
-		// 		method: "POST",
-		// 		headers: { "Content-Type": "application/json" },
-		// 		body: JSON.stringify(val),
-		// 	});
+		try {
+			await fetch("/api/company/new-user", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(val),
+			});
 
-		// 	await router.push("/auth/signin");
-		// } catch (error) {
-		// 	toast({
-		// 		title: "Error",
-		// 		description: "Please Try Again",
-		// 	});
-		// 	console.log(error);
-		// }
-        console.log(val);
+			await router.push("/auth/signin");
+		} catch (error) {
+			toast({
+				title: "Error",
+				description: "Please Try Again",
+			});
+			console.log(error);
+		}
+       
 	};
 
 	return (

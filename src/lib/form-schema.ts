@@ -10,8 +10,8 @@ export const jobFormSchema = z.object({
     requiredSkills: z.string().array().nonempty({message: 'Required skills must be at least 1 skill'}),
     jobDescription: z.string({required_error: 'Job description is required'}).min(10, {message: 'Job description must be at least 10 characters'}),
     responsibility: z.string({required_error: 'Responsibilities is required'}).min(10, {message: 'Responsibilities must be at least 10 characters'}),
-    whoyouare: z.string({required_error: 'Who You Are is required'}).min(10, {message: 'Who you are must be at least 10 characters'}),
-    nicetohaves: z.string({required_error: 'Nice-To-Haves is required'}).min(10, {message: 'Nice-To-Haves must be at least 10 characters'}),
+    whoYouAre: z.string({required_error: 'Who You Are is required'}).min(10, {message: 'Who you are must be at least 10 characters'}),
+    niceToHaves: z.string({required_error: 'Nice-To-Haves is required'}).min(10, {message: 'Nice-To-Haves must be at least 10 characters'}),
     benefits: z.object({
         benefit: z.string(),
         description: z.string()
@@ -19,7 +19,7 @@ export const jobFormSchema = z.object({
 });
 
 export const overviewFormSchema = z.object({
-    image: z.any().refine((item: any) => item?.name, {message:'Image is required'}),
+    image: z.any(),
     name: z.string({required_error: 'Name is required'}),
     website: z.string({required_error: 'Website is required'}),
     location: z.string({required_error: 'Location is required'}),

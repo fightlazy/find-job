@@ -6,9 +6,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Applicants from "@/components/organisms/Applicants";
 import JobDetail from "@/components/organisms/JobDetail";
 
-interface JobDetailPageProps {}
+import prisma from "../../../../../lib/prisma";
 
-const JobDetailPage: FC<JobDetailPageProps> = ({}) => {
+type paramsType = {
+  id: string
+}
+interface JobDetailPageProps {
+  params: paramsType
+}
+
+async function getDetailJob(id: string) {
+  const job = await prisma.job.findFirst({
+    where: {
+      id: id
+    },
+    include: {
+      applicant: {
+        include: {
+          user: true
+        }
+      },
+      CategoryJob: true
+    }
+  })
+
+  return job;
+}
+
+const JobDetailPage: FC<JobDetailPageProps> = async ({params}) => { 
+  const job = await getDetailJob(params.id);
+  
   return (
     <div>
       <div className="inline-flex items-center gap-5 mb-5">
@@ -18,8 +45,8 @@ const JobDetailPage: FC<JobDetailPageProps> = ({}) => {
           </Link>
         </div>
         <div>
-          <div className="text-2xl font-semibold mb-1">Brand Designer</div>
-          <div>Design . Full-Time . 1/10 Hired</div>
+          <div className="text-2xl font-semibold mb-1">{job?.roles}</div>
+          <div>{job?.CategoryJob?.name} . {job?.jobType} . {job?.applicants}/{job?.needs} Hired</div>
         </div>
       </div>
 
@@ -29,10 +56,10 @@ const JobDetailPage: FC<JobDetailPageProps> = ({}) => {
           <TabsTrigger value="jobDetails">Job Details</TabsTrigger>
         </TabsList>
         <TabsContent value="applicants">
-         <Applicants />
+         <Applicants applicants={job?.applicant}/>
         </TabsContent>
         <TabsContent value="jobDetails">
-            <JobDetail />
+            <JobDetail detail={job}/>
         </TabsContent>
       </Tabs>
     </div>

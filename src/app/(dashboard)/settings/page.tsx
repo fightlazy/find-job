@@ -6,10 +6,30 @@ import JobDetail from "@/components/organisms/JobDetail";
 import OverviewPage from "@/components/forms/OverviewForm";
 import SocialMediaForm from "@/components/forms/SocialMediaForm";
 import TeamForm from "@/components/forms/TeamForm";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import prisma from "../../../../lib/prisma";
 
 interface SettingsPageProps {}
 
-const SettingPage: FC<SettingsPageProps> = ({}) => {
+async function getDetailCompany() {
+    const session = await getServerSession(authOptions)
+
+    const company = await prisma.company.findFirst({
+        where: {id: session?.user.id},
+        include: {
+            Companyoverview: true,
+            CompanySocialMedia: true,
+            CompanyTeam: true,
+        }
+    })
+    return company;
+}
+
+const SettingPage: FC<SettingsPageProps> = async ({}) => {
+    const company = await getDetailCompany()
+
+    console.log(company);
     return (
         <div>
             <div className="font-semibold text-3xl mb-5">Settings</div>
@@ -21,13 +41,13 @@ const SettingPage: FC<SettingsPageProps> = ({}) => {
           <TabsTrigger value="teams">Teams</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-         <OverviewPage />
+         <OverviewPage detail={company?.Companyoverview[0]}/>
         </TabsContent>
         <TabsContent value="sociallinks">
-            <SocialMediaForm />
+            <SocialMediaForm detail={company?.CompanySocialMedia[0]}/>
         </TabsContent>
         <TabsContent value="teams">
-            <TeamForm />
+            <TeamForm teams={company?.CompanyTeam}/>
         </TabsContent>
       </Tabs>
         </div>
