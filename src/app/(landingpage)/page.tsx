@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import BannerSignUp from "@/components/organisms/BannerSignUp";
 import Category from "@/components/organisms/Category";
 import Clients from "@/components/organisms/Clients";
-import FeaturedJobs from "@/components/organisms/FeaturedJob";
+import FeaturedJobs from "@/components/organisms/FeaturedJobs";
 import Hero from "@/components/organisms/Hero";
 import Image from "next/image";
 import LatestJobs from "@/components/organisms/LatestJob";
