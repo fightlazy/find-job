@@ -16,49 +16,109 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import UploadFiled from "../UploadField";
 import UploadField from "../UploadField";
+import { useSession } from "next-auth/react";
+import { supabaseUploadFile } from "@/lib/supabase";
+import { useToast } from "@/components/ui/use-toast";
+import { title } from "process";
+import { useRouter } from "next/navigation";
 
+interface FormModalApplyProps {
+  image: string | undefined;
+  roles: string | undefined;
+  location: string | undefined;
+  jobType: string | undefined;
+  id: string | undefined;
+  isApply: number | undefined;
+}
 
-
-interface FormModalApplyProps {}
-
-const FormModalApply: FC<FormModalApplyProps> = ({}) => {
+const FormModalApply: FC<FormModalApplyProps> = ({
+  image,
+  roles,
+  location,
+  jobType,
+  id,
+  isApply,
+}) => {
   const form = useForm<z.infer<typeof formApplySchema>>({
     resolver: zodResolver(formApplySchema),
   });
 
-  const onSubmit = (val: z.infer<typeof formApplySchema>) => {
-    console.log(val);
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const { data: session } = useSession();
+
+  const onSubmit = async (val: z.infer<typeof formApplySchema>) => {
+    try {
+      const { filename, error } = await supabaseUploadFile(
+        val.resume,
+        "applicant"
+      );
+
+      const reqData = {
+        userId: session?.user.id,
+        jobId: id,
+        resume: filename,
+        coverLetter: val.coverLetter,
+        linkedin: val.linkedin,
+        phone: val.phone,
+        portofolio: val.portofolio,
+        previousJobTitle: val.previousJobTitle,
+      };
+
+      if (error) {
+        throw "Error";
+      }
+
+      await fetch("/api/jobs/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reqData),
+      });
+
+      await toast({
+        title: "Success",
+        description: "Apply job success",
+      });
+
+      router.replace("/");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Please try again",
+      });
+    }
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="lg" className="text-lg px-12 py-6">
-          Apply
-        </Button>
+      <Button size="lg" className="text-lg px-12 py-6">
+                Apply
+              </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600]">
         <div>
           <div className="inline-flex items-center gap-4">
             <div>
-              <Image
-                src="/images/company2.png"
-                alt="/images/company2.png"
-                width={60}
-                height={60}
-              />
+              <Image src={image!!} alt={image!!} width={60} height={60} />
             </div>
             <div>
-              <div className="text-lg font-semibold">
-                Social Media Assistant
-              </div>
+              <div className="text-lg font-semibold">{roles}</div>
               <div className="text-gray-500">
-                Agency . Paris, France . Full-Time
+                {location} . {jobType}
               </div>
             </div>
           </div>
@@ -83,7 +143,7 @@ const FormModalApply: FC<FormModalApplyProps> = ({}) => {
                       <FormLabel>Full Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter you full name" {...field} />
-                      </FormControl>                  
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -96,7 +156,7 @@ const FormModalApply: FC<FormModalApplyProps> = ({}) => {
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter you email" {...field} />
-                      </FormControl>                  
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -108,8 +168,11 @@ const FormModalApply: FC<FormModalApplyProps> = ({}) => {
                     <FormItem>
                       <FormLabel>Phone number</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter you phone number" {...field} />
-                      </FormControl>                  
+                        <Input
+                          placeholder="Enter you phone number"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -121,8 +184,11 @@ const FormModalApply: FC<FormModalApplyProps> = ({}) => {
                     <FormItem>
                       <FormLabel>Current of previous job title</FormLabel>
                       <FormControl>
-                        <Input placeholder="what's your current of previous job title" {...field} />
-                      </FormControl>                  
+                        <Input
+                          placeholder="what's your current of previous job title"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -134,28 +200,34 @@ const FormModalApply: FC<FormModalApplyProps> = ({}) => {
               <h2 className="font-semibold">LINKS</h2>
 
               <div className="grid grid-cols-2 gap-6">
-              <FormField
+                <FormField
                   control={form.control}
                   name="linkedin"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>LinkedIn URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="Link to your linked url" {...field} />
-                      </FormControl>                  
+                        <Input
+                          placeholder="Link to your linked url"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              <FormField
+                <FormField
                   control={form.control}
                   name="portofolio"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Portofolio URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="Link to your portofolio url" {...field} />
-                      </FormControl>                  
+                        <Input
+                          placeholder="Link to your portofolio url"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -163,21 +235,24 @@ const FormModalApply: FC<FormModalApplyProps> = ({}) => {
               </div>
 
               <FormField
-                  control={form.control}
-                  name="coverLetter"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Additional Information</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Add a cover letter or anything else you want to share" {...field} />
-                      </FormControl>                  
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                control={form.control}
+                name="coverLetter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Additional Information</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Add a cover letter or anything else you want to share"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <UploadField form={form}/>
-                <Button className="w-full">Apply</Button>
+              <UploadField form={form} />
+              <Button className="w-full">Apply</Button>
 
               <div></div>
             </form>

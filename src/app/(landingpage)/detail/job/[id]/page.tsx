@@ -7,10 +7,76 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { FC } from "react";
 import { BiCategory } from "react-icons/bi";
+import prisma from "../../../../../../lib/prisma";
+import { supabasePublicUrl } from "@/lib/supabase";
+import { dateFormat } from "@/lib/utils";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-interface DetailJobPageProps {}
+async function getDetailJob(id: string) {
+  const session = await getServerSession(authOptions);
 
-const DetailJobPage: FC<DetailJobPageProps> = ({}) => {
+  const data = await prisma.job.findFirst({
+    where: {
+      id,
+    },
+    include: {
+      Company: {
+        include: {
+          Companyoverview: true,
+        },
+      },
+      CategoryJob: true,
+    },
+  });
+
+  let imageUrl;
+
+  if (data?.Company?.Companyoverview[0].image) {
+    imageUrl = await supabasePublicUrl(
+      data.Company.Companyoverview[0].image,
+      "company"
+    );
+  } else {
+    imageUrl = "/images/company2.png";
+  }
+
+  const applicants = data?.applicants || 0;
+
+  const needs = data?.needs || 0;
+
+  const isApply = await prisma.applicant.count({
+    where: {
+      userId: session?.user.id,
+    },
+  });
+
+  if (!session) {
+    return {
+      ...data,
+      image: imageUrl,
+      benefits: data?.benefits,
+      applicants,
+      needs,
+      isApply: 0,
+    };
+  }
+
+  return {
+    ...data,
+    image: imageUrl,
+    benefits: data?.benefits,
+    applicants,
+    needs,
+    isApply,
+  };
+}
+
+const DetailJobPage = async ({ params }: { params: { id: string } }) => {
+  const data = await getDetailJob(params.id);
+  const session = await getServerSession(authOptions)
+
+
   return (
     <>
       <div className="bg-slate-100 px-32 pt-10 pb-14">
@@ -28,86 +94,94 @@ const DetailJobPage: FC<DetailJobPageProps> = ({}) => {
           /{" "}
           <Link
             className="hover:underline hover:text-black"
-            href="/detail/company/1"
+            href={`/detail/company/1${data?.Company?.Companyoverview[0].id}`}
           >
-            Twitter
+            {data?.Company?.Companyoverview[0].name}
           </Link>{" "}
           /{""}
           <Link
             className="hover:underline hover:text-black"
-            href="/detail/job/1"
+            href={`/detail/job/1${data?.id}`}
           >
-            Social Medial Asisstant
+            {data?.roles}
           </Link>
         </div>
         <div className="bg-white shadow mt-10 p-5 w-11/12 mx-auto flex flex-row justify-between items-center">
           <div className="inline-flex items-center gap-5">
-            <Image
-              src="/images/company2.png"
-              alt="/images/company2.png"
-              width={88}
-              height={88}
-            />
+            <Image src={data.image} alt={data.image} width={88} height={88} />
             <div>
-              <div className="text-2xl font-semibold">
-                Social Media Assistant
-              </div>
+              <div className="text-2xl font-semibold">{data?.roles}</div>
               <div className="text-muted-foreground">
-                Agency . Paris, France . Full-Time
+                {data?.Company?.Companyoverview[0].location} . {data?.jobType}
               </div>
             </div>
           </div>
-          <FormModalApply />
+         {session ? (
+          <>
+          {data.isApply === 1 ? (
+            <Button disabled className="text-lg px-12 py-6 bg-green-500">
+            Applied
+          </Button>
+          ): (
+            {<FormModalApply
+              image={data.image}
+              roles={data.roles!!}
+              jobType={data.jobType!!}
+              location={data?.Company?.Companyoverview[0].location}
+              id={data.id}
+              isApply={data.isApply}
+            />}
+          )}
+          </>
+         ): (
+            <Button variant="outline" disabled>
+            Sign In First
+          </Button>
+
+         )}
+          
         </div>
       </div>
       <div className="px-32 py-16 flex flex-row items-start gap-10">
         <div className="w-3/4">
           <div className="mb-16">
-            <div className="text-3xl font-semibold mb-3">Description</div>
-            <div className="text-muted-foreground">
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Maiores, iste. Quis, molestias voluptates! Ad, officia? Neque
-                nisi sed ipsam illo consequuntur, soluta beatae minima eum
-                sequi, id cupiditate corrupti error!
-              </p>
+            <div
+              className="text-3xl font-semibold mb-3"
+              dangerouslySetInnerHTML={{ __html: data?.description!! }}
+            >
+              Description
             </div>
+            <div className="text-muted-foreground"></div>
           </div>
 
           <div className="mb-16">
-            <div className="text-3xl font-semibold mb-3">Responsibilities</div>
-            <div className="text-muted-foreground">
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Maiores, iste. Quis, molestias voluptates! Ad, officia? Neque
-                nisi sed ipsam illo consequuntur, soluta beatae minima eum
-                sequi, id cupiditate corrupti error!
-              </p>
+            <div
+              className="text-3xl font-semibold mb-3"
+              dangerouslySetInnerHTML={{ __html: data?.responsibility!! }}
+            >
+              Responsibilities
             </div>
+            <div className="text-muted-foreground"></div>
           </div>
 
           <div className="mb-16">
-            <div className="text-3xl font-semibold mb-3">Who You Are</div>
-            <div className="text-muted-foreground">
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Maiores, iste. Quis, molestias voluptates! Ad, officia? Neque
-                nisi sed ipsam illo consequuntur, soluta beatae minima eum
-                sequi, id cupiditate corrupti error!
-              </p>
+            <div
+              className="text-3xl font-semibold mb-3"
+              dangerouslySetInnerHTML={{ __html: data?.whoYouAre!! }}
+            >
+              Who You Are
             </div>
+            <div className="text-muted-foreground"></div>
           </div>
 
           <div className="mb-16">
-            <div className="text-3xl font-semibold mb-3">Nice To Haves</div>
-            <div className="text-muted-foreground">
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Maiores, iste. Quis, molestias voluptates! Ad, officia? Neque
-                nisi sed ipsam illo consequuntur, soluta beatae minima eum
-                sequi, id cupiditate corrupti error!
-              </p>
+            <div
+              className="text-3xl font-semibold mb-3"
+              dangerouslySetInnerHTML={{ __html: data?.niceToHaves!! }}
+            >
+              Nice To Haves
             </div>
+            <div className="text-muted-foreground"></div>
           </div>
         </div>
         <div className="w-1/4">
@@ -116,31 +190,39 @@ const DetailJobPage: FC<DetailJobPageProps> = ({}) => {
 
             <div className="mt-6 p-4 bg-slate-50">
               <div className="mb-2">
-                <span className="font-semibold">5 Applied</span>{" "}
+                <span className="font-semibold">
+                  {data?.applicants} Applied
+                </span>{" "}
                 <span className="text-gray-600">of 10 capacity</span>
               </div>
-              <Progress value={50} />
+              <Progress value={(data.applicants / data.needs) * 100} />
             </div>
 
             <div className="mt-6 space-y-4">
               <div className="flex flex-row justify-between">
                 <div className="text-gray-500">Apply Before</div>
-                <div className="font-semibold">July 12, 2024</div>
+                <div className="font-semibold">
+                  {dateFormat(data.dueDate!!)}
+                </div>
               </div>
 
               <div className="flex flex-row justify-between">
                 <div className="text-gray-500">Job Posted On</div>
-                <div className="font-semibold">July 12, 2024</div>
+                <div className="font-semibold">
+                  {dateFormat(data.datePosted!!)}
+                </div>
               </div>
 
               <div className="flex flex-row justify-between">
                 <div className="text-gray-500">Job Type</div>
-                <div className="font-semibold">Full-Time</div>
+                <div className="font-semibold">{data?.jobType}</div>
               </div>
 
               <div className="flex flex-row justify-between">
                 <div className="text-gray-500">Salary</div>
-                <div className="font-semibold">$75k-$89k</div>
+                <div className="font-semibold">
+                  ${data?.salaryFrom}-${data?.salaryTo}
+                </div>
               </div>
             </div>
           </div>
@@ -159,9 +241,9 @@ const DetailJobPage: FC<DetailJobPageProps> = ({}) => {
           <div>
             <div className="text-3xl font-semibold">Required SKills</div>
             <div className="my-10 inline-flex gap-4">
-              {[0, 1, 2].map((item: number) => (
-                <Badge variant="outline" key={item}>
-                  Marketing
+              {data?.requiredSkills.map((item: any, i: number) => (
+                <Badge variant="outline" key={item + i}>
+                  {item}
                 </Badge>
               ))}
             </div>
@@ -169,31 +251,28 @@ const DetailJobPage: FC<DetailJobPageProps> = ({}) => {
         </div>
       </div>
 
-
       <div className="px-32 pd-16">
-        <Separator className="mb-14"/>
-       <div className="mb-6">
-        <div className="font-semibold text-3xl">
-              perks & benefits
-        </div>
-        <div className="text-gray-500 mt-1">
-              This job come with several perks and benefits
-        </div>
-       </div>
-
-       <div className="grid grid-cols-5 gap-5">
-        {[0,1,3].map((item: number) => (
-          <div key={item}>
-            <BiCategory className="w-12 h-12 text-primary" />
-            <div className="font-semibold text-xl mt-6">
-              Full Healtcare
-            </div>
-            <div className="mt-3 text-sm text-gray-500">
-              we believe in thriving communities and that starts with our team bening happy and healthy
-            </div>
+        <Separator className="mb-14" />
+        <div className="mb-6">
+          <div className="font-semibold text-3xl">perks & benefits</div>
+          <div className="text-gray-500 mt-1">
+            This job come with several perks and benefits
           </div>
-        ))}
-       </div>
+        </div>
+
+        <div className="grid grid-cols-5 gap-5">
+          {data?.benefits?.map((item: any, i: number) => (
+						<div key={i}>
+							<BiCategory className="w-12 h-12 text-primary" />
+							<div className="font-semibold text-xl mt-6">
+								{item.benefit}
+							</div>
+							<div className="mt-3 text-sm text-gray-500">
+								{item.description}
+							</div>
+            </div>
+          ))}
+        </div>
       </div>
     </>
   );
