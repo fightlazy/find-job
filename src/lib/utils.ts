@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 import bcrypt from "bcryptjs";
-import { init } from "next/dist/compiled/webpack/webpack";
+
 import { categoryJobType, CompanyType, JobType, optionType } from "@/types";
 import { supabasePublicUrl } from "./supabase";
 
@@ -37,21 +37,21 @@ export async function fetcher<JSON = any>(
 }
 
 export const parsingCategories = (
-  data: any,
-  isLoading: boolean,
-  error: any
+	data: any,
+	isLoading: boolean,
+	error: any
 ) => {
-  if (!isLoading && !error && data) {
-    return data.map((item: any) => {
-      return {
-        id: item.id,
-        name: item.name,
-        totalJobs: item._count.Job,
-      };
-    }) as categoryJobType[];
-  }
+	if (!isLoading && !error && data) {
+		return data.map((item: any) => {
+			return {
+				id: item.id,
+				name: item.name,
+				totalJobs: item._count.Job
+			};
+		}) as categoryJobType[];
+	}
 
-  return [];
+	return [];
 };
 
 export const parsingJobs = async (

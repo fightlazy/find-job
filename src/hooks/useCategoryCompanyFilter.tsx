@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import useSWR from "swr";
 
 const useCategoryCompanyFilter = () => {
-	const { data, error, isLoading } = useSWR("/api/jobs/categories", fetcher);
+	const { data, error, isLoading } = useSWR("/api/company/categories", fetcher);
 
 	const categories = useMemo(
 		() => parsingCategoriesToOptions(data, isLoading, error, true),

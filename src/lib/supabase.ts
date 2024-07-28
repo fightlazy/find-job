@@ -6,10 +6,14 @@ export const supabaseClient = createClient (
 )
 
 export const supabasePublicUrl = async (filename: string, bucket: string) => {
-    const {data: {publicUrl}} = await supabaseClient.storage.from(bucket).getPublicUrl(`public/${filename}`)
+	const {
+		data: { publicUrl },
+	} = await supabaseClient.storage
+		.from(bucket)
+		.getPublicUrl(`public/${filename}`);
 
-    return publicUrl
-}
+	return publicUrl;
+};
 
 export const supabaseUploadFile = async (file: File | string, bucket: string) => {
     const filename = `resume-${createId(5)}.pdf`

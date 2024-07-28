@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Applicant {
-  id               String  @id
+  id               String  @id @default(cuid())
   userId           String?
   jobId            String?
   previousJobTitle String
@@ -107,5 +107,5 @@ model User {
   name      String
   password  String
   email     String      @unique
-  Applicant Applicant[]
+  applicant Applicant[]
 }

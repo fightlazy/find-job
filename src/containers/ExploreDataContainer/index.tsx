@@ -57,7 +57,7 @@ const ExploreDataContainer: FC<ExploreDataContainerProps> = ({
         <div className="w-1/5">
           <FormFilterDynamic
             formFilter={formFilter}
-            onSubmitFiler={onSubmitFilter}
+            onSubmitFilter={onSubmitFilter}
             filterForms={filterForms}
           />
         </div>

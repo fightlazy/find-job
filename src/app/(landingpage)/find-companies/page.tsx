@@ -44,7 +44,7 @@ const FindCompaniesPage: FC<FindCompaniesPageProps> = ({}) => {
       filterForms={filters}
       title="dream companies"
       subtitle="Find the dream companies you dream work for"
-      loading={false}
+      loading={isLoading}
       type="company"
       data={companies}
     />

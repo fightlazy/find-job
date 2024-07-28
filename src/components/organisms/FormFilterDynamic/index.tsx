@@ -21,18 +21,18 @@ import { Button } from "@/components/ui/button";
 
 interface FormFilterDynamicProps {
   formFilter: any;
-  onSubmitFiler: (val: any) => Promise<void> | undefined;
+  onSubmitFilter: (val: any) => Promise<void> | undefined;
   filterForms: filterFormType[];
 }
 
 const FormFilterDynamic: FC<FormFilterDynamicProps> = ({
   filterForms,
   formFilter,
-  onSubmitFiler,
+  onSubmitFilter,
 }) => {
   return (
     <Form {...formFilter}>
-      <form onSubmit={formFilter.handleSubmit(onSubmitFiler)}>
+      <form onSubmit={formFilter.handleSubmit(onSubmitFilter)}>
         {filterForms.map((item: filterFormType, i: number) => (
           <CheckboxForm
             key={i}
