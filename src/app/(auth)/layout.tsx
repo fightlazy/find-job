@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Epilogue } from "next/font/google";
 import "../globals.css";
+<<<<<<< HEAD
 import Image from "next/image";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -14,10 +15,24 @@ export const metadata: Metadata = {
 };
 
 export default function AuthRootLayout({
+=======
+
+import { Toaster } from "@/components/ui/toaster";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+
+const epilogue = Epilogue({ subsets: ["latin"] });
+
+
+
+export default async function RootLayout({
+>>>>>>> 8ae46e8b9ad5478c2bff3e0076ee1faccc18c0aa
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+<<<<<<< HEAD
   return (
     <html lang="en">
       <body className={`${epilogue.className} relative overflow-x-hidden`}>
@@ -36,6 +51,20 @@ export default function AuthRootLayout({
         
         </main>
     <Toaster />
+=======
+  const session = await getServerSession(authOptions)
+
+  if(session !== null) {
+    return redirect('/');
+  }
+  return (
+    <html lang="en">
+      <body className={epilogue.className}>
+        <main>
+          {children}
+          <Toaster />
+        </main>
+>>>>>>> 8ae46e8b9ad5478c2bff3e0076ee1faccc18c0aa
       </body>
     </html>
   );
